@@ -20,6 +20,7 @@ const int BUZZER_PIN          = 5;
 const int LED_GREEN_PIN       = 6;  // window open indicator
 const int LED_RED_PIN         = 7;  // window closed indicator
 const int SERVO_PIN           = 9;
+const int STATUS_LED_PIN      = LED_BUILTIN; // built into every Arduino Uno - no wiring needed
 
 // ---- Thresholds (calibrate these using your own sensor's readings) ----
 // Lower analog value generally means more water on the sensing plate.
@@ -40,6 +41,11 @@ unsigned long wetSince = 0;
 unsigned long promptStartTime = 0;
 const unsigned long RESPONSE_TIMEOUT = 10000; // 10 sec to respond
 
+// ---- Passenger intimation via built-in LED ----
+unsigned long lastBlinkTime = 0;
+bool statusLedState = false;
+const unsigned long BLINK_INTERVAL_MS = 300; // how fast it blinks while waiting
+
 void setup() {
   Serial.begin(9600);
   pinMode(YES_BUTTON_PIN, INPUT_PULLUP);
@@ -49,6 +55,7 @@ void setup() {
   pinMode(LED_GREEN_PIN, OUTPUT);
   pinMode(LED_RED_PIN, OUTPUT);
   windowServo.attach(SERVO_PIN);
+  pinMode(STATUS_LED_PIN, OUTPUT);
   openWindow();
 }
 
@@ -107,7 +114,24 @@ void loop() {
     waitingForResponse = false;
   }
 
+  updateStatusLed();
+
   delay(200);
+}
+
+void updateStatusLed() {
+  // Blinks the Arduino's built-in LED whenever the system is waiting for a
+  // passenger response - this is the passenger's visible "intimation."
+  if (waitingForResponse) {
+    if (millis() - lastBlinkTime >= BLINK_INTERVAL_MS) {
+      lastBlinkTime = millis();
+      statusLedState = !statusLedState;
+      digitalWrite(STATUS_LED_PIN, statusLedState ? HIGH : LOW);
+    }
+  } else {
+    digitalWrite(STATUS_LED_PIN, LOW);
+    statusLedState = false;
+  }
 }
 
 void closeWindow() {
