@@ -45,7 +45,7 @@ A microcontroller-based system fitted to each window that:
 
 ```
 /firmware   -> Arduino source code
-/docs       -> Circuit diagram, photos, additional documentation
+/Smart_Bus_Window_Prototype_Document_with_Pictures -> Circuit diagram, photos, additional documentation
 /demo       -> Link to demo video
 ```
 
